@@ -1,0 +1,18 @@
+import type { ErrorRequestHandler } from 'express';
+
+const errorMiddleware: ErrorRequestHandler = (
+    error,
+    _req,
+    res,
+    _next,
+) => {
+    console.error(error);
+
+    res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        data: null,
+    });
+};
+
+export default errorMiddleware;
