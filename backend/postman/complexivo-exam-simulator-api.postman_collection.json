@@ -30,6 +30,75 @@
         }
       ],
       "description": "Endpoints para verificar el estado y disponibilidad de la API, permitiendo comprobar que el servidor se encuentra funcionando correctamente."
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlBase}}/categories",
+              "host": [
+                "{{urlBase}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para consultar las categorías del banco de preguntas."
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "Get questions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlBase}}/questions",
+              "host": [
+                "{{urlBase}}"
+              ],
+              "path": [
+                "questions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get questions filtrada por categoría",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlBase}}/questions?categoryId=1",
+              "host": [
+                "{{urlBase}}"
+              ],
+              "path": [
+                "questions"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para consultar las preguntas del banco de preguntas. Las respuestas públicas no incluyen isCorrect ni explanation."
     }
   ]
 }
