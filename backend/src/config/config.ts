@@ -3,6 +3,7 @@ import 'dotenv/config';
 const {
     PORT = '3000',
     NODE_ENV = 'development',
+    DATABASE_URL,
 } = process.env;
 
 const port = Number(PORT);
@@ -18,9 +19,26 @@ if (!['development', 'production'].includes(nodeEnv)) {
     );
 }
 
+if (!DATABASE_URL) {
+    throw new Error('DATABASE_URL is required');
+}
+
+let databaseUrl: URL;
+
+try {
+    databaseUrl = new URL(DATABASE_URL);
+} catch {
+    throw new Error('DATABASE_URL must be a valid URL');
+}
+
+if (!['postgresql:', 'postgres:'].includes(databaseUrl.protocol)) {
+    throw new Error('DATABASE_URL must be a PostgreSQL connection string');
+}
+
 const config = {
     port,
     nodeEnv,
+    databaseUrl: DATABASE_URL,
 };
 
 export default config;
