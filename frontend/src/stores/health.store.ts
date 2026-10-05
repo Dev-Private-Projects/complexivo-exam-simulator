@@ -18,6 +18,7 @@ export const useHealthStore = defineStore('health', () => {
   let toastTimer: ReturnType<typeof setTimeout> | null = null
   let successTimer: ReturnType<typeof setTimeout> | null = null
   let cancelled = false
+  let errorLatched = false
 
   const clearTimer = (timer: ReturnType<typeof setTimeout> | null) => {
     if (timer) {
@@ -60,6 +61,7 @@ export const useHealthStore = defineStore('health', () => {
 
   const initialize = async () => {
     cancelled = false
+    errorLatched = false
     status.value = 'checking'
     showToast.value = false
 
@@ -92,17 +94,21 @@ export const useHealthStore = defineStore('health', () => {
         const elapsed = Date.now() - startTime
         const remainingTime = HEALTH_MAX_WAIT_TIME - elapsed
 
-        if (remainingTime <= 0) {
+        if (remainingTime <= 0 && !errorLatched) {
           clearTimer(toastTimer)
           toastTimer = null
 
           status.value = 'error'
           showToast.value = true
 
-          return
+          errorLatched = true
         }
 
-        await wait(Math.min(HEALTH_RETRY_INTERVAL, remainingTime))
+        if (errorLatched) {
+          await wait(HEALTH_RETRY_INTERVAL)
+        } else {
+          await wait(Math.min(HEALTH_RETRY_INTERVAL, remainingTime))
+        }
       }
     }
   }

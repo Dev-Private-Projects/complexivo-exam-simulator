@@ -1,12 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
+import QuestionBankView from '@/views/QuestionBankView.vue'
+import SimuladorView from '@/views/SimuladorView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      component: HomeView
+      component: QuestionBankView,
+    },
+    {
+      path: '/banco-de-preguntas',
+      redirect: '/',
+    },
+    {
+      path: '/simulador',
+      component: SimuladorView,
     },
   ],
 })
