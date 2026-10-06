@@ -4,6 +4,7 @@ const {
     PORT = '3000',
     NODE_ENV = 'development',
     DATABASE_URL,
+    CORS_ORIGIN,
 } = process.env;
 
 const port = Number(PORT);
@@ -39,6 +40,7 @@ const config = {
     port,
     nodeEnv,
     databaseUrl: DATABASE_URL,
+    corsOrigin: CORS_ORIGIN ?? 'http://localhost:5173',
 };
 
 export default config;
