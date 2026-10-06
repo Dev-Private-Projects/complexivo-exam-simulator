@@ -1,0 +1,104 @@
+{
+  "info": {
+    "_postman_id": "09fc4edf-2ed2-459b-9415-b916deea5045",
+    "name": "complexivo-exam-simulator-api",
+    "description": "API REST para la gestión del simulador de examen complexivo. Esta colección contiene los endpoints necesarios para administrar examen, preguntas, respuestas, resultados y demás funciones del sistema.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52192273",
+    "_collection_link": "https://go.postman.co/collection/52192273-09fc4edf-2ed2-459b-9415-b916deea5045?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlBase}}/health",
+              "host": [
+                "{{urlBase}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para verificar el estado y disponibilidad de la API, permitiendo comprobar que el servidor se encuentra funcionando correctamente."
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlBase}}/categories",
+              "host": [
+                "{{urlBase}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para consultar las categorías del banco de preguntas."
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "Get questions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlBase}}/questions",
+              "host": [
+                "{{urlBase}}"
+              ],
+              "path": [
+                "questions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get questions filtrada por categoría",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{urlBase}}/questions?categoryId=1",
+              "host": [
+                "{{urlBase}}"
+              ],
+              "path": [
+                "questions"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para consultar las preguntas del banco de preguntas. Las respuestas públicas no incluyen isCorrect ni explanation."
+    }
+  ]
+}
