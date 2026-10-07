@@ -1,18 +1,121 @@
 <script setup lang="ts">
-import { onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, BarChart3, CircleCheck, ClipboardCheck, LayoutDashboard, ListChecks, MessageSquare, PieChart, Play, RotateCcw, Timer, XCircle } from '@lucide/vue'
+import { ArrowLeft, BarChart3, Bot, BotOff, CircleCheck, ClipboardCheck, LayoutDashboard, ListChecks, LoaderCircle, MessageSquare, PieChart, Play, RotateCcw, Timer, XCircle } from '@lucide/vue'
 
 import { useSimuladorStore } from '@/stores/simulador.store'
 import { DONUT_CIRCUMFERENCE, QUESTION_COUNT, TIME_LIMIT_SECONDS } from '@/constants/simulador'
 import FormattedText from '@/components/FormattedText.vue'
+import ExplanationPanel from '@/components/ExplanationPanel.vue'
+import { getAiExplanation } from '@/services/ai.service'
+import { badgeIcon, badgeIconColor } from '@/utils/categoryIcons'
 
 const router = useRouter()
 const store = useSimuladorStore()
 
+const selectedOptionId = ref<number | null>(null)
+const aiExplanation = ref('')
+const aiLoading = ref(false)
+const aiError = ref<string | null>(null)
+const segundosSiguiente = ref(10)
+const useAi = ref(true)
+let countdownId: ReturnType<typeof setInterval> | null = null
+
+const isLastQuestion = computed(() => store.currentIndex === store.questions.length - 1)
+
+const startCountdown = () => {
+  if (countdownId) clearInterval(countdownId)
+  segundosSiguiente.value = 10
+  countdownId = setInterval(() => {
+    if (segundosSiguiente.value <= 1) {
+      clearInterval(countdownId!)
+      countdownId = null
+      segundosSiguiente.value = 0
+    } else {
+      segundosSiguiente.value--
+    }
+  }, 1000)
+}
+
+const selectOption = async (option: { id: number; text: string; position: number; isCorrect: boolean }) => {
+  if (selectedOptionId.value !== null) return
+  selectedOptionId.value = option.id
+
+    recordInStore(option)
+
+  if (!useAi.value) {
+    aiExplanation.value = ''
+    aiError.value = null
+    aiLoading.value = false
+    segundosSiguiente.value = 0
+    return
+  }
+
+  aiLoading.value = true
+	aiError.value = null
+	aiExplanation.value = ''
+
+	try {
+		const correctOption = store.currentQuestion?.options.find((o) => o.isCorrect)?.text ?? ''
+		aiExplanation.value = await getAiExplanation({
+			pregunta: store.currentQuestion?.statement ?? '',
+			opcionSeleccionada: option.text,
+			opcionCorrecta: correctOption,
+			esCorrecta: option.isCorrect,
+		})
+	} catch (err) {
+		aiError.value = err instanceof Error ? err.message : 'Error al obtener la explicación de IA'
+	} finally {
+		aiLoading.value = false
+	}
+
+	startCountdown()
+}
+
+const recordInStore = (option: { id: number }) => {
+  store.recordAnswer(option.id)
+}
+
+const goNext = () => {
+  if (selectedOptionId.value === null) return
+  if (segundosSiguiente.value > 0) return
+  if (countdownId) {
+    clearInterval(countdownId)
+    countdownId = null
+  }
+  selectedOptionId.value = null
+  aiExplanation.value = ''
+  aiError.value = null
+  aiLoading.value = false
+  segundosSiguiente.value = 10
+  store.nextQuestion()
+}
+
 onBeforeUnmount(() => {
   store.cleanup()
+  if (countdownId) clearInterval(countdownId)
 })
+
+onMounted(() => {
+  store.resetToBriefing()
+})
+
+watch(
+  () => store.phase,
+  (p) => {
+    if (p !== 'exam') {
+      if (countdownId) {
+        clearInterval(countdownId)
+        countdownId = null
+      }
+      selectedOptionId.value = null
+      aiExplanation.value = ''
+      aiError.value = null
+      aiLoading.value = false
+      segundosSiguiente.value = 10
+    }
+  },
+)
 </script>
 
 
@@ -20,25 +123,64 @@ onBeforeUnmount(() => {
   <main class="flex min-h-screen items-start justify-center bg-gray-50 px-2 py-4 sm:items-center sm:px-4 sm:py-10">
     <section v-if="store.phase === 'exam' && store.currentQuestion" class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-100">
       <div class="flex items-center justify-between">
-        <p class="text-sm text-gray-500">Pregunta {{ store.currentIndex + 1 }} de {{ store.total }}</p>
-        <p class="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-          <Timer :size="16" /> {{ store.formattedTime }}
-        </p>
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-flex items-center"
+            :style="badgeIconColor(store.currentQuestion.category.name)"
+            :title="store.currentQuestion.category.name"
+          >
+            <component :is="badgeIcon(store.currentQuestion.category.name)" :size="16" />
+          </span>
+          <p class="text-sm text-gray-500">Pregunta {{ store.currentIndex + 1 }} de {{ store.total }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            :aria-label="useAi ? 'Desactivar IA' : 'Activar IA'"
+            :title="useAi ? 'IA activada' : 'IA desactivada'"
+            class="rounded-full p-1 transition hover:bg-gray-100"
+            @click="useAi = !useAi"
+          >
+            <BotOff v-if="!useAi" :size="20" class="text-gray-400" />
+            <Bot v-else :size="20" class="text-green-600" />
+          </button>
+          <p class="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+            <Timer :size="16" /> {{ store.formattedTime }}
+          </p>
+        </div>
       </div>
       <h1 class="mt-4 font-medium text-gray-900"><FormattedText :text="store.currentQuestion.statement" /></h1>
       <ul class="mt-5 space-y-2">
         <li v-for="option in store.currentQuestion.options" :key="option.id">
           <button
             class="w-full rounded-lg border border-gray-200 px-4 py-3 text-left text-sm text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
-            @click="store.answer(option.id)"
+            :class="selectedOptionId === option.id ? (option.isCorrect ? 'border-green-300 bg-green-50 text-green-800' : 'border-red-300 bg-red-50 text-red-800') : ''"
+            :disabled="selectedOptionId !== null"
+            @click="selectOption(option)"
           >
             {{ option.position }}. <FormattedText :text="option.text" />
           </button>
         </li>
       </ul>
+      <div v-if="selectedOptionId !== null && useAi" class="mt-4 flex items-start gap-2">
+        <Bot :size="18" class="mt-0.5 shrink-0 text-purple-600" />
+        <div v-if="aiLoading" class="rounded-2xl rounded-tl-none bg-purple-100 px-4 py-2 text-sm text-gray-700">
+          Pensando<span class="animate-pulse">…</span>
+        </div>
+        <div v-else-if="aiError" class="text-sm text-red-600">{{ aiError }}</div>
+        <div v-else class="flex-1 rounded-2xl rounded-tl-none bg-purple-100 px-4 py-2">
+          <ExplanationPanel :text="aiExplanation" :open="true" :plain="true" />
+        </div>
+      </div>
+
       <div class="mt-6 flex justify-end">
-        <button class="rounded-full border border-gray-200 px-5 py-2 text-sm text-gray-700" @click="store.finalize">
-          Finalizar
+        <button
+          class="rounded-full border border-gray-200 px-5 py-2 text-sm text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          :disabled="!selectedOptionId || segundosSiguiente > 0"
+          @click="goNext"
+        >
+          {{ isLastQuestion ? 'Finalizar' : 'Siguiente' }}
+          <span v-if="selectedOptionId && segundosSiguiente > 0">({{ segundosSiguiente }}s)</span>
         </button>
       </div>
     </section>
