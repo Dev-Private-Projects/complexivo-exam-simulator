@@ -5,6 +5,7 @@ const {
     NODE_ENV = 'development',
     DATABASE_URL,
     CORS_ORIGIN,
+    GEMINI_API_KEY,
 } = process.env;
 
 const port = Number(PORT);
@@ -41,6 +42,7 @@ const config = {
     nodeEnv,
     databaseUrl: DATABASE_URL,
     corsOrigin: CORS_ORIGIN ?? 'http://localhost:5173',
+    geminiApiKey: GEMINI_API_KEY ?? '',
 };
 
 export default config;

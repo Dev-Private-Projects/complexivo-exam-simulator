@@ -186,14 +186,22 @@ export const useSimuladorStore = defineStore('simulador', () => {
     }
   }
 
-  const answer = (optionId: number) => {
-    if (phase.value !== 'exam' || !currentQuestion.value) return
+  const recordAnswer = (optionId: number) => {
+    if (!currentQuestion.value) return
     selectedByQuestion.value[currentQuestion.value.id] = optionId
+  }
+
+  const nextQuestion = () => {
     if (currentIndex.value < questions.value.length - 1) {
       currentIndex.value++
     } else {
       finalize()
     }
+  }
+
+  const answer = (optionId: number) => {
+    recordAnswer(optionId)
+    nextQuestion()
   }
 
   const finalize = () => {
@@ -238,6 +246,8 @@ export const useSimuladorStore = defineStore('simulador', () => {
     byCategory,
     startExam,
     answer,
+    recordAnswer,
+    nextQuestion,
     finalize,
     resetToBriefing,
     cleanup,

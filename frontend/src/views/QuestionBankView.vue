@@ -1,35 +1,24 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
-  Atom,
-  Boxes,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
-  Code,
-  Cpu,
-  Database,
-  GitBranch,
-  Globe,
-  GraduationCap,
   ListFilter,
   LoaderCircle,
-  Play,
-  Radio,
   Search,
   ServerOff,
-  ShieldCheck,
-  Sigma,
-  SquareRadical,
-  Terminal,
-  Wifi,
   X,
-  Zap,
+  Lightbulb,
 } from '@lucide/vue'
+
+import { badgeIconColor, badgeIcon } from '@/utils/categoryIcons'
 
 import { useQuestionStore } from '@/stores/question.store'
 import { useHealthStore } from '@/stores/health.store'
+import ExplanationPanel from '@/components/ExplanationPanel.vue'
+import FormattedText from '@/components/FormattedText.vue'
 
 const store = useQuestionStore()
 const healthStore = useHealthStore()
@@ -71,48 +60,10 @@ const removeCategory = (id: number) => {
   store.setCategories(store.selectedCategoryIds.filter((current) => current !== id))
 }
 
-const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  'CALCULO I': { bg: '#dbeafe', text: '#1e40af' },
-  'CALCULO II': { bg: '#e0e7ff', text: '#3730a3' },
-  'ENTORNO VIRTUAL DE APRENDIZAJE': { bg: '#fef3c7', text: '#92400e' },
-  'ARQUITECTURA DEL COMPUTADOR': { bg: '#f3e8ff', text: '#6b21a8' },
-  'ELECTROTECNIA': { bg: '#dcfce7', text: '#166534' },
-  'ESTRUCTURA DE DATOS': { bg: '#ccfbf1', text: '#115e59' },
-  FISICA: { bg: '#fee2e2', text: '#991b1b' },
-  'FUNDAMENTOS DE BASE DE DATOS': { bg: '#fce7f3', text: '#9d174d' },
-  'FUNDAMENTOS DE PROGRAMACION': { bg: '#e0f2fe', text: '#075985' },
-  'PROGRAMACION ORIENTADA A OBJETOS': { bg: '#cffafe', text: '#155e75' },
-  'REDES DE DATOS': { bg: '#fef9c3', text: '#854d0e' },
-  'SEGURIDAD DE APLICACIONES': { bg: '#ffe4e6', text: '#9f1239' },
-  'SISTEMAS OPERATIVOS': { bg: '#ede9fe', text: '#5b21b6' },
-  'TECNOLOGIA DE TELECOMUNICACIONES': { bg: '#d1fae5', text: '#065f46' },
-  'INGENIERIA DE SOFTWARE': { bg: '#f1f5f9', text: '#334155' },
+const openedExplanationId = ref<number | null>(null)
+const toggleExplanation = (id: number) => {
+  openedExplanationId.value = openedExplanationId.value === id ? null : id
 }
-
-const badgeIconColor = (name: string) => {
-  const color = CATEGORY_COLORS[name] ?? { bg: '#f3f4f6', text: '#374151' }
-  return { color: color.text }
-}
-
-const CATEGORY_ICONS: Record<string, unknown> = {
-  'CALCULO I': SquareRadical,
-  'CALCULO II': Sigma,
-  'ENTORNO VIRTUAL DE APRENDIZAJE': GraduationCap,
-  'ARQUITECTURA DEL COMPUTADOR': Cpu,
-  'ELECTROTECNIA': Zap,
-  'ESTRUCTURA DE DATOS': Boxes,
-  FISICA: Atom,
-  'FUNDAMENTOS DE BASE DE DATOS': Database,
-  'FUNDAMENTOS DE PROGRAMACION': Code,
-  'PROGRAMACION ORIENTADA A OBJETOS': Boxes,
-  'REDES DE DATOS': Globe,
-  'SEGURIDAD DE APLICACIONES': ShieldCheck,
-  'SISTEMAS OPERATIVOS': Terminal,
-  'TECNOLOGIA DE TELECOMUNICACIONES': Radio,
-  'INGENIERIA DE SOFTWARE': GitBranch,
-}
-
-const badgeIcon = (name: string) => CATEGORY_ICONS[name] ?? Code
 
 const onSelectSummaryClick = (event: Event) => {
   if (selectDisabled.value) {
@@ -181,7 +132,7 @@ onUnmounted(() => {
             <ChevronDown :size="16" class="text-gray-400" />
           </summary>
 
-          <div class="absolute z-30 mt-2 w-full rounded-2xl border border-gray-200 bg-white p-2 shadow-lg">
+          <div class="absolute z-30 mt-2 h-56 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-lg">
             <button
               v-for="category in availableCategories"
               :key="category.id"
@@ -283,15 +234,25 @@ onUnmounted(() => {
             <div class="flex items-start justify-between gap-3">
               <p class="font-medium text-gray-900">
                 <span class="mr-1 font-semibold text-gray-400">{{ (store.currentPage - 1) * 10 + index + 1 }}.</span>
-                {{ question.statement }}
+                <FormattedText :text="question.statement" />
               </p>
-              <span
-                class="inline-flex shrink-0 items-center"
-                :style="badgeIconColor(question.category.name)"
-                :title="question.category.name"
-              >
-                <component :is="badgeIcon(question.category.name)" :size="16" />
-              </span>
+              <div class="flex shrink-0 items-center gap-2">
+                <span
+                  class="inline-flex items-center"
+                  :style="badgeIconColor(question.category.name)"
+                  :title="question.category.name"
+                >
+                  <component :is="badgeIcon(question.category.name)" :size="16" />
+                </span>
+                <button
+                  type="button"
+                  :aria-label="'Mostrar explicación de la pregunta ' + question.id"
+                  :class="openedExplanationId === question.id ? 'text-amber-400 fill-amber-400 animate-pulse drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]' : 'text-gray-400 hover:text-gray-600'"
+                  @click="toggleExplanation(question.id)"
+                >
+                  <Lightbulb :size="17" />
+                </button>
+              </div>
             </div>
 
             <ul class="mt-3 space-y-1.5">
@@ -302,9 +263,16 @@ onUnmounted(() => {
                 :class="option.isCorrect ? 'rounded-md bg-green-50 px-2 py-1.5 text-green-700' : 'text-gray-600'"
               >
                 <CircleCheck v-if="option.isCorrect" :size="16" class="mt-0.5 shrink-0 text-green-600" />
-                <span>{{ option.position }}. {{ option.text }}</span>
+                <span>{{ option.position }}. <FormattedText :text="option.text" /></span>
               </li>
             </ul>
+
+            <ExplanationPanel
+              v-if="question.explanation"
+              :text="question.explanation"
+              :open="openedExplanationId === question.id"
+              class="mt-4"
+            />
           </li>
         </ul>
         </div>

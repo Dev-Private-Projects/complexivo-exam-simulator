@@ -12,5 +12,6 @@ export type Question = {
     name: string
   }
   statement: string
+  explanation: string | null
   options: QuestionOption[]
 }
