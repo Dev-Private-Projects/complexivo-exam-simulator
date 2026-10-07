@@ -5,6 +5,7 @@ import { ArrowLeft, BarChart3, CircleCheck, ClipboardCheck, LayoutDashboard, Lis
 
 import { useSimuladorStore } from '@/stores/simulador.store'
 import { DONUT_CIRCUMFERENCE, QUESTION_COUNT, TIME_LIMIT_SECONDS } from '@/constants/simulador'
+import FormattedText from '@/components/FormattedText.vue'
 
 const router = useRouter()
 const store = useSimuladorStore()
@@ -24,14 +25,14 @@ onBeforeUnmount(() => {
           <Timer :size="16" /> {{ store.formattedTime }}
         </p>
       </div>
-      <h1 class="mt-4 font-medium text-gray-900">{{ store.currentQuestion.statement }}</h1>
+      <h1 class="mt-4 font-medium text-gray-900"><FormattedText :text="store.currentQuestion.statement" /></h1>
       <ul class="mt-5 space-y-2">
         <li v-for="option in store.currentQuestion.options" :key="option.id">
           <button
             class="w-full rounded-lg border border-gray-200 px-4 py-3 text-left text-sm text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
             @click="store.answer(option.id)"
           >
-            {{ option.position }}. {{ option.text }}
+            {{ option.position }}. <FormattedText :text="option.text" />
           </button>
         </li>
       </ul>
