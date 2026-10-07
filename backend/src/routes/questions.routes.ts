@@ -52,6 +52,7 @@ router.get('/questions', async (req, res, next) => {
                 statement: questions.statement,
                 categoryId: questions.categoryId,
                 categoryName: categories.name,
+                explanation: questions.explanation,
             })
             .from(questions)
             .innerJoin(categories, eq(questions.categoryId, categories.id))
@@ -86,6 +87,7 @@ router.get('/questions', async (req, res, next) => {
             id: question.id,
             category: { id: question.categoryId, name: question.categoryName },
             statement: question.statement,
+            explanation: question.explanation ?? null,
             options: (optionsByQuestion.get(question.id) ?? []).map((option) => ({
                 id: option.id,
                 text: option.text,

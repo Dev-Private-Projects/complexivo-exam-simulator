@@ -26,10 +26,13 @@ import {
   Wifi,
   X,
   Zap,
+  Lightbulb,
 } from '@lucide/vue'
 
 import { useQuestionStore } from '@/stores/question.store'
 import { useHealthStore } from '@/stores/health.store'
+import ExplanationPanel from '@/components/ExplanationPanel.vue'
+import FormattedText from '@/components/FormattedText.vue'
 
 const store = useQuestionStore()
 const healthStore = useHealthStore()
@@ -69,6 +72,11 @@ const addCategory = (id: number) => {
 
 const removeCategory = (id: number) => {
   store.setCategories(store.selectedCategoryIds.filter((current) => current !== id))
+}
+
+const openedExplanationId = ref<number | null>(null)
+const toggleExplanation = (id: number) => {
+  openedExplanationId.value = openedExplanationId.value === id ? null : id
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
@@ -181,7 +189,7 @@ onUnmounted(() => {
             <ChevronDown :size="16" class="text-gray-400" />
           </summary>
 
-          <div class="absolute z-30 mt-2 w-full rounded-2xl border border-gray-200 bg-white p-2 shadow-lg">
+          <div class="absolute z-30 mt-2 h-56 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-lg">
             <button
               v-for="category in availableCategories"
               :key="category.id"
@@ -283,15 +291,25 @@ onUnmounted(() => {
             <div class="flex items-start justify-between gap-3">
               <p class="font-medium text-gray-900">
                 <span class="mr-1 font-semibold text-gray-400">{{ (store.currentPage - 1) * 10 + index + 1 }}.</span>
-                {{ question.statement }}
+                <FormattedText :text="question.statement" />
               </p>
-              <span
-                class="inline-flex shrink-0 items-center"
-                :style="badgeIconColor(question.category.name)"
-                :title="question.category.name"
-              >
-                <component :is="badgeIcon(question.category.name)" :size="16" />
-              </span>
+              <div class="flex shrink-0 items-center gap-2">
+                <span
+                  class="inline-flex items-center"
+                  :style="badgeIconColor(question.category.name)"
+                  :title="question.category.name"
+                >
+                  <component :is="badgeIcon(question.category.name)" :size="16" />
+                </span>
+                <button
+                  type="button"
+                  :aria-label="'Mostrar explicación de la pregunta ' + question.id"
+                  :class="openedExplanationId === question.id ? 'text-amber-400 fill-amber-400 animate-pulse drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]' : 'text-gray-400 hover:text-gray-600'"
+                  @click="toggleExplanation(question.id)"
+                >
+                  <Lightbulb :size="17" />
+                </button>
+              </div>
             </div>
 
             <ul class="mt-3 space-y-1.5">
@@ -302,9 +320,16 @@ onUnmounted(() => {
                 :class="option.isCorrect ? 'rounded-md bg-green-50 px-2 py-1.5 text-green-700' : 'text-gray-600'"
               >
                 <CircleCheck v-if="option.isCorrect" :size="16" class="mt-0.5 shrink-0 text-green-600" />
-                <span>{{ option.position }}. {{ option.text }}</span>
+                <span>{{ option.position }}. <FormattedText :text="option.text" /></span>
               </li>
             </ul>
+
+            <ExplanationPanel
+              v-if="question.explanation"
+              :text="question.explanation"
+              :open="openedExplanationId === question.id"
+              class="mt-4"
+            />
           </li>
         </ul>
         </div>

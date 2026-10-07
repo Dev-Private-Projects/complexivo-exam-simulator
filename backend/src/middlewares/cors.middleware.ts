@@ -1,7 +1,8 @@
 import cors from 'cors'
+import config from '../config/config.js';
 
 const corsMiddleware = cors({
-  origin: 'http://localhost:5173',
+  origin: config.corsOrigin,
 })
 
 export default corsMiddleware
