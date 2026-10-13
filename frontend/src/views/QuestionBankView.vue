@@ -255,6 +255,13 @@ onUnmounted(() => {
               </div>
             </div>
 
+            <img
+              v-if="question.imageUrl"
+              :src="question.imageUrl"
+              :alt="'Imagen de la pregunta ' + question.id"
+              class="mx-auto mt-3 block max-h-32 w-auto rounded-lg border border-gray-100 object-contain"
+            />
+
             <ul class="mt-3 space-y-1.5">
               <li
                 v-for="option in question.options"
@@ -263,7 +270,7 @@ onUnmounted(() => {
                 :class="option.isCorrect ? 'rounded-md bg-green-50 px-2 py-1.5 text-green-700' : 'text-gray-600'"
               >
                 <CircleCheck v-if="option.isCorrect" :size="16" class="mt-0.5 shrink-0 text-green-600" />
-                <span>{{ option.position }}. <FormattedText :text="option.text" /></span>
+                <span>{{ String.fromCharCode(96 + option.position) }}) <FormattedText :text="option.text" /></span>
               </li>
             </ul>
 

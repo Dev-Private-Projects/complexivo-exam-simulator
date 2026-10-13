@@ -24,6 +24,7 @@ export const questions = pgTable(
             .notNull()
             .references(() => categories.id),
         statement: text('statement').notNull(),
+        imageUrl: text('image_url'),
         explanation: text('explanation'),
         createdAt: timestamp('created_at', { withTimezone: true })
             .defaultNow()

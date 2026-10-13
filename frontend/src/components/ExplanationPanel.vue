@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
+import { GraduationCap } from '@lucide/vue'
 
 const props = defineProps<{ text: string; open?: boolean; plain?: boolean }>()
 
@@ -86,8 +87,11 @@ onUnmounted(stopTimer)
 
 <template>
   <div v-show="visible" :class="plain ? 'text-sm leading-relaxed text-gray-600' : 'rounded-lg bg-gray-50 p-3'">
-    <p class="whitespace-pre-line text-sm leading-relaxed text-gray-600">
-      {{ displayed }}<span v-if="visible" class="animate-pulse">▍</span>
-    </p>
+    <div class="flex items-start gap-2">
+      <GraduationCap :size="18" class="mt-0.5 shrink-0 text-blue-500" />
+      <p class="whitespace-pre-line text-sm leading-relaxed text-gray-600">
+        {{ displayed }}<span v-if="visible" class="animate-pulse">▍</span>
+      </p>
+    </div>
   </div>
 </template>
