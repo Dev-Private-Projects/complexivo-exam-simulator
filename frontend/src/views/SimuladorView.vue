@@ -150,6 +150,12 @@ watch(
         </div>
       </div>
       <h1 class="mt-4 font-medium text-gray-900"><FormattedText :text="store.currentQuestion.statement" /></h1>
+      <img
+        v-if="store.currentQuestion.imageUrl"
+        :src="store.currentQuestion.imageUrl"
+        alt="Imagen de la pregunta"
+        class="mx-auto mt-4 block max-h-32 w-auto rounded-lg border border-gray-100 object-contain"
+      />
       <ul class="mt-5 space-y-2">
         <li v-for="option in store.currentQuestion.options" :key="option.id">
           <button
@@ -158,7 +164,7 @@ watch(
             :disabled="selectedOptionId !== null"
             @click="selectOption(option)"
           >
-            {{ option.position }}. <FormattedText :text="option.text" />
+            {{ String.fromCharCode(96 + option.position) }}) <FormattedText :text="option.text" />
           </button>
         </li>
       </ul>

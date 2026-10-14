@@ -12,6 +12,7 @@ export type Question = {
     name: string
   }
   statement: string
+  imageUrl: string | null
   explanation: string | null
   options: QuestionOption[]
 }
