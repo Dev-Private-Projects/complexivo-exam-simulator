@@ -50,6 +50,7 @@ router.get('/questions', async (req, res, next) => {
             .select({
                 id: questions.id,
                 statement: questions.statement,
+                imageUrl: questions.imageUrl,
                 categoryId: questions.categoryId,
                 categoryName: categories.name,
                 explanation: questions.explanation,
@@ -87,6 +88,7 @@ router.get('/questions', async (req, res, next) => {
             id: question.id,
             category: { id: question.categoryId, name: question.categoryName },
             statement: question.statement,
+            imageUrl: question.imageUrl ?? null,
             explanation: question.explanation ?? null,
             options: (optionsByQuestion.get(question.id) ?? []).map((option) => ({
                 id: option.id,
