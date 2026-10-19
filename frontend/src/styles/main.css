@@ -1,11 +1,7 @@
-﻿@import 'tailwindcss';
-
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Patrick+Hand&family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-hand: 'Caveat', cursive;
-  --font-note: 'Patrick Hand', cursive;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   --color-paper: #faf8f3;
   --color-paper-dark: #f0ece3;
@@ -24,11 +20,88 @@
   --color-green-pen: #2d6a4f;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@keyframes note-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes note-loading-bar {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes note-message-swap {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.message-swap {
+  display: inline-block;
+  animation: note-message-swap 0.45s ease-out;
+}
+
+.loading-bar {
+  animation: note-loading-bar 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.shimmer-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-pencil-light) 0%,
+    var(--color-pencil) 40%,
+    var(--color-pencil-light) 80%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: note-shimmer 1.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-text {
+    animation: none;
+    background-image: none;
+    color: var(--color-pencil-light);
+  }
+
+  .loading-bar {
+    animation: none;
+    transform: none;
+  }
+
+  .message-swap {
+    animation: none;
+  }
+}
+
 body {
   background-color: var(--color-paper);
   color: var(--color-pencil);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
@@ -85,16 +158,6 @@ h6 {
 }
 .sticky-note-orange {
   background: var(--color-highlight-orange);
-}
-
-.handwritten {
-  font-family: var(--font-hand);
-  letter-spacing: 0.01em;
-}
-
-.note-text {
-  font-family: var(--font-note);
-  letter-spacing: 0.02em;
 }
 
 .notebook-card {

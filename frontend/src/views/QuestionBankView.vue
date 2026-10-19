@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ListFilter,
-  LoaderCircle,
   Play,
   Search,
   ServerOff,
@@ -24,6 +23,7 @@ import {
 
 import { useQuestionStore } from '@/stores/question.store'
 import { useHealthStore } from '@/stores/health.store'
+import { HEALTH_MESSAGE_INTERVAL } from '@/constants/health'
 import ExplanationPanel from '@/components/ExplanationPanel.vue'
 import FormattedText from '@/components/FormattedText.vue'
 
@@ -100,6 +100,33 @@ const onDocumentClick = (event: MouseEvent) => {
   }
 }
 
+const wakingMessages = [
+  'Despertando el servidor',
+  'El servidor sigue despertando',
+  'Ya casi está despierto',
+  'Casi listo',
+  'Listo para comenzar',
+  'Preparando el entorno',
+  'Cargando recursos',
+]
+
+const currentMessageIndex = ref(0)
+let messageTimer: ReturnType<typeof setInterval> | null = null
+
+const startMessageRotation = () => {
+  if (messageTimer) return
+  messageTimer = setInterval(() => {
+    currentMessageIndex.value = (currentMessageIndex.value + 1) % wakingMessages.length
+  }, HEALTH_MESSAGE_INTERVAL)
+}
+
+const stopMessageRotation = () => {
+  if (messageTimer) {
+    clearInterval(messageTimer)
+    messageTimer = null
+  }
+}
+
 onMounted(() => {
   document.addEventListener('click', onDocumentClick)
 
@@ -107,8 +134,18 @@ onMounted(() => {
     () => healthStore.status,
     (newStatus) => {
       if (newStatus === 'ready') {
-        void store.loadCategories()
-        void store.loadQuestions()
+        if (!store.categoriesLoaded) {
+          void store.loadCategories()
+        }
+        if (!store.questionsLoaded) {
+          void store.loadQuestions()
+        }
+        stopMessageRotation()
+        return
+      }
+
+      if (newStatus === 'checking') {
+        startMessageRotation()
       }
     },
     { immediate: true },
@@ -117,16 +154,52 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', onDocumentClick)
+  stopMessageRotation()
 })
 </script>
 
 <template>
   <main class="mx-auto w-full max-w-6xl px-4 pb-16 pt-6">
-    <div class="grid items-start gap-8 lg:grid-cols-[25%_1fr]">
+    <div
+      v-if="healthStore.status !== 'ready'"
+      class="flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center text-center"
+    >
+      <div v-if="healthStore.status === 'checking'" class="flex flex-col items-center gap-5">
+        <p class="flex items-center gap-0.5 text-base text-pencil">
+          <span :key="currentMessageIndex" class="message-swap">
+            <span class="shimmer-text">{{ wakingMessages[currentMessageIndex] }}</span>
+          </span>
+          <span class="flex w-4 overflow-hidden" aria-hidden="true">
+            <span class="animate-pulse">.</span>
+            <span class="animate-pulse [animation-delay:200ms]">.</span>
+            <span class="animate-pulse [animation-delay:400ms]">.</span>
+          </span>
+        </p>
+
+        <div
+          class="h-1 w-56 overflow-hidden rounded-full bg-black/5"
+          role="progressbar"
+          aria-label="Cargando"
+        >
+          <div class="loading-bar h-full w-1/3 rounded-full bg-blue-pen/70" />
+        </div>
+
+        <p class="text-xs text-gray-400">El servidor puede tardar unos segundos en despertar</p>
+      </div>
+
+      <div v-else class="flex flex-col items-center gap-3 text-red-600">
+        <ServerOff :size="32" />
+        <p class="text-sm">
+          No se pudo conectar con el servidor. Verifica que el backend esté encendido.
+        </p>
+      </div>
+    </div>
+
+    <div v-else class="grid items-start gap-8 lg:grid-cols-[25%_1fr]">
       <aside class="flex flex-col gap-5 lg:sticky lg:top-10">
         <div class="sticky-note sticky-note-blue p-4 pt-6" style="transform: rotate(-2deg)">
-          <h1 class="handwritten text-2xl font-bold text-blue-900">Banco de preguntas</h1>
-          <p class="note-text mt-1 text-sm text-blue-800">
+          <h1 class="text-2xl font-bold text-blue-900">Banco de preguntas</h1>
+          <p class="mt-1 text-sm text-blue-800">
             Preparación para la carrera Tecnología Superior en Desarrollo de Software
           </p>
         </div>
@@ -162,7 +235,7 @@ onUnmounted(() => {
             >
               <span class="flex items-center gap-2">
                 <ListFilter :size="16" class="text-blue-pen" />
-                <span class="note-text">{{ categoryLabel }}</span>
+                <span>{{ categoryLabel }}</span>
               </span>
               <ChevronDown
                 :size="16"
@@ -178,7 +251,7 @@ onUnmounted(() => {
                 v-for="category in store.categories"
                 :key="category.id"
                 type="button"
-                class="note-menu-item note-text flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm"
+                class="note-menu-item flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm"
                 @click="toggleCategory(category.id)"
               >
                 <span
@@ -200,7 +273,7 @@ onUnmounted(() => {
 
               <p
                 v-if="store.categories.length === 0"
-                class="note-text px-2 py-2 text-center text-sm italic text-gray-400"
+                class="px-2 py-2 text-center text-sm italic text-gray-400"
               >
                 Sin categorías
               </p>
@@ -219,7 +292,7 @@ onUnmounted(() => {
               :aria-label="`Quitar filtro ${category.name}`"
               @click="toggleCategory(category.id)"
             >
-              <span class="note-text truncate text-[11px] text-blue-900">
+              <span class="truncate text-[11px] text-blue-900">
                 {{ formatCategoryName(category.name) }}
               </span>
               <X
@@ -230,7 +303,7 @@ onUnmounted(() => {
 
             <span
               v-if="hiddenSelectedCount > 0"
-              class="note-text rounded border border-gray-300/70 bg-white/60 px-1.5 py-0.5 text-[11px] text-gray-500"
+              class="rounded border border-gray-300/70 bg-white/60 px-1.5 py-0.5 text-[11px] text-gray-500"
             >
               +{{ hiddenSelectedCount }}
             </span>
@@ -239,7 +312,7 @@ onUnmounted(() => {
 
         <div class="note-sheet grid grid-cols-[auto_1fr_auto] items-center gap-2 rounded px-2 py-2">
           <button
-            class="note-icon-btn note-text group flex h-7 w-7 items-center justify-center rounded disabled:pointer-events-none disabled:opacity-25"
+            class="note-icon-btn group flex h-7 w-7 items-center justify-center rounded disabled:pointer-events-none disabled:opacity-25"
             :disabled="store.currentPage <= 1"
             aria-label="Página anterior"
             @click="store.goToPage(store.currentPage - 1)"
@@ -251,17 +324,17 @@ onUnmounted(() => {
           </button>
 
           <div class="flex min-w-0 flex-col items-center gap-0.5 text-center">
-            <p class="handwritten text-lg leading-none text-pencil">
+            <p class="text-lg leading-none font-semibold text-pencil">
               {{ store.currentPage }}
               <span class="text-sm text-pencil-light">/ {{ store.totalPages }}</span>
             </p>
-            <p class="note-text text-[10px] leading-none text-gray-500">
+            <p class="text-[10px] leading-none text-gray-500">
               {{ store.questions.length }} preguntas
             </p>
           </div>
 
           <button
-            class="note-icon-btn note-text group flex h-7 w-7 items-center justify-center rounded disabled:pointer-events-none disabled:opacity-25"
+            class="note-icon-btn group flex h-7 w-7 items-center justify-center rounded disabled:pointer-events-none disabled:opacity-25"
             :disabled="store.currentPage >= store.totalPages"
             aria-label="Página siguiente"
             @click="store.goToPage(store.currentPage + 1)"
@@ -283,123 +356,109 @@ onUnmounted(() => {
             :size="13"
             class="ml-0.5 text-blue-pen transition-transform group-hover:scale-110"
           />
-          <span class="note-text text-sm">Simulación</span>
+          <span class="text-sm">Simulación</span>
         </RouterLink>
       </aside>
 
-      <section class="relative">
+      <section class="relative" :class="{ 'min-h-[calc(100vh-3rem)]': store.questionsLoading }">
         <div
-          v-if="healthStore.status === 'checking'"
-          class="flex flex-col items-center gap-3 py-16 text-center text-gray-500"
+          v-if="store.questionsLoading"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 text-center"
         >
-          <LoaderCircle :size="32" class="animate-spin" />
-          <p class="note-text text-sm">Preparando el banco de preguntas…</p>
+          <p class="flex items-center gap-0.5 text-sm">
+            <span class="shimmer-text">Cargando preguntas</span>
+            <span class="flex w-3 overflow-hidden" aria-hidden="true">
+              <span class="animate-pulse">.</span>
+              <span class="animate-pulse [animation-delay:200ms]">.</span>
+              <span class="animate-pulse [animation-delay:400ms]">.</span>
+            </span>
+          </p>
         </div>
-
         <div
-          v-else-if="healthStore.status === 'error'"
+          v-else-if="store.questionsError"
           class="flex flex-col items-center gap-3 py-16 text-center text-red-600"
         >
           <ServerOff :size="32" />
-          <p class="note-text text-sm">
-            No se pudo conectar con el servidor. Verifica que el backend esté encendido.
-          </p>
+          <p class="text-sm">{{ store.questionsError }}</p>
         </div>
+        <p v-else-if="store.pageQuestions.length === 0" class="text-sm text-gray-500">
+          No hay preguntas que coincidan con tu búsqueda.
+        </p>
 
-        <div v-else>
-          <div
-            v-if="store.questionsLoading"
-            class="flex flex-col items-center gap-3 py-16 text-center text-gray-500"
+        <ul v-else class="space-y-6">
+          <li
+            v-for="(question, index) in store.pageQuestions"
+            :key="question.id"
+            class="notebook-card notebook-card--ruled group/card relative overflow-hidden py-4 pr-4"
+            :style="{ '--notebook-margin-color': categoryAccent(question.category.name) }"
           >
-            <LoaderCircle :size="32" class="animate-spin" />
-            <p class="note-text text-sm">Cargando preguntas…</p>
-          </div>
-          <div
-            v-else-if="store.questionsError"
-            class="flex flex-col items-center gap-3 py-16 text-center text-red-600"
-          >
-            <ServerOff :size="32" />
-            <p class="note-text text-sm">{{ store.questionsError }}</p>
-          </div>
-          <p v-else-if="store.pageQuestions.length === 0" class="note-text text-sm text-gray-500">
-            No hay preguntas que coincidan con tu búsqueda.
-          </p>
+            <div class="spiral-binding" aria-hidden="true">
+              <span v-for="ring in 5" :key="ring" class="spiral-ring" />
+            </div>
 
-          <ul v-else class="space-y-6">
-            <li
-              v-for="(question, index) in store.pageQuestions"
-              :key="question.id"
-              class="notebook-card notebook-card--ruled group/card relative overflow-hidden py-4 pr-4"
-              :style="{ '--notebook-margin-color': categoryAccent(question.category.name) }"
-            >
-              <div class="spiral-binding" aria-hidden="true">
-                <span v-for="ring in 5" :key="ring" class="spiral-ring" />
-              </div>
-
-              <div>
-                <div class="flex items-start justify-between gap-3">
-                  <p class="font-medium text-gray-900">
-                    <span class="mr-1 font-bold text-gray-500 handwritten text-xl"
-                      >{{ (store.currentPage - 1) * 10 + index + 1 }}.</span
-                    >
-                    <FormattedText :text="question.statement" />
-                  </p>
-                  <div class="flex shrink-0 items-center gap-2">
-                    <span
-                      class="inline-flex items-center"
-                      :style="badgeIconColor(question.category.name)"
-                      :title="question.category.name"
-                    >
-                      <component
-                        :is="badgeIcon(question.category.name)"
-                        :size="16"
-                        :fill="badgeIconFill(question.category.name)"
-                      />
-                    </span>
-                    <button
-                      type="button"
-                      class="note-icon-btn group flex h-6 w-6 items-center justify-center"
-                      :aria-label="'Mostrar explicación de la pregunta ' + question.id"
-                      :class="
-                        openedExplanationId === question.id
-                          ? 'text-amber-500 animate-pulse drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]'
-                          : 'text-gray-400'
-                      "
-                      @click="toggleExplanation(question.id)"
-                    >
-                      <Lightbulb :size="17" class="transition-colors group-hover:text-amber-500" />
-                    </button>
-                  </div>
-                </div>
-
-                <ul class="mt-2 space-y-1">
-                  <li
-                    v-for="option in question.options"
-                    :key="option.id"
-                    class="inline-flex w-fit max-w-full items-start gap-1.5 rounded px-2 py-1 text-sm"
-                    :class="
-                      option.isCorrect
-                        ? 'note-highlight relative z-10 origin-left text-yellow-900 transition-transform duration-300 ease-out group-hover/card:scale-[1.07]'
-                        : 'text-gray-600'
-                    "
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <p class="font-medium text-gray-900">
+                  <span class="mr-1 text-xl font-bold text-gray-500"
+                    >{{ (store.currentPage - 1) * 10 + index + 1 }}.</span
                   >
-                    <span class="note-text shrink-0 font-semibold"
-                      >{{ String.fromCharCode(96 + option.position) }})</span
-                    >
-                    <span><FormattedText :text="option.text" /></span>
-                  </li>
-                </ul>
-
-                <ExplanationPanel
-                  v-if="question.explanation"
-                  :text="question.explanation"
-                  :open="openedExplanationId === question.id"
-                  source="doc"
-                />
+                  <FormattedText :text="question.statement" />
+                </p>
+                <div class="flex shrink-0 items-center gap-2">
+                  <span
+                    class="inline-flex items-center"
+                    :style="badgeIconColor(question.category.name)"
+                    :title="question.category.name"
+                  >
+                    <component
+                      :is="badgeIcon(question.category.name)"
+                      :size="16"
+                      :fill="badgeIconFill(question.category.name)"
+                    />
+                  </span>
+                  <button
+                    type="button"
+                    class="note-icon-btn group flex h-6 w-6 items-center justify-center"
+                    :aria-label="'Mostrar explicación de la pregunta ' + question.id"
+                    :class="
+                      openedExplanationId === question.id
+                        ? 'text-amber-500 animate-pulse drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]'
+                        : 'text-gray-400'
+                    "
+                    @click="toggleExplanation(question.id)"
+                  >
+                    <Lightbulb :size="17" class="transition-colors group-hover:text-amber-500" />
+                  </button>
+                </div>
               </div>
-            </li>
-          </ul>
-        </div>
+
+              <ul class="mt-2 space-y-1">
+                <li
+                  v-for="option in question.options"
+                  :key="option.id"
+                  class="inline-flex w-fit max-w-full items-start gap-1.5 rounded px-2 py-1 text-sm"
+                  :class="
+                    option.isCorrect
+                      ? 'note-highlight relative z-10 origin-left text-yellow-900 transition-transform duration-300 ease-out group-hover/card:scale-[1.07]'
+                      : 'text-gray-600'
+                  "
+                >
+                  <span class="shrink-0 font-semibold"
+                    >{{ String.fromCharCode(96 + option.position) }})</span
+                  >
+                  <span><FormattedText :text="option.text" /></span>
+                </li>
+              </ul>
+
+              <ExplanationPanel
+                v-if="question.explanation"
+                :text="question.explanation"
+                :open="openedExplanationId === question.id"
+                source="doc"
+              />
+            </div>
+          </li>
+        </ul>
       </section>
     </div>
   </main>

@@ -38,7 +38,10 @@ export const useSimuladorStore = defineStore('simulador', () => {
   const successRatio = computed(() => (total.value === 0 ? 0 : correctCount.value / total.value))
 
   const byCategory = computed(() => {
-    const map = new Map<string, { total: number; correct: number; incorrect: number; unanswered: number }>()
+    const map = new Map<
+      string,
+      { total: number; correct: number; incorrect: number; unanswered: number }
+    >()
     for (const q of questions.value) {
       const key = q.category.name
       const entry = map.get(key) ?? { total: 0, correct: 0, incorrect: 0, unanswered: 0 }
