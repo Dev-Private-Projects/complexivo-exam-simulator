@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { GraduationCap } from '@lucide/vue'
+import { Bot, Presentation } from '@lucide/vue'
 
-const props = defineProps<{ text: string; open?: boolean; plain?: boolean }>()
+const props = defineProps<{ text: string; open?: boolean; source?: 'ai' | 'doc' }>()
+
+const isAi = computed(() => (props.source ?? 'ai') === 'ai')
 
 const formatted = computed(() => {
   let t = props.text
@@ -76,20 +78,29 @@ watch(
   { immediate: true },
 )
 
-watch(() => props.text, () => {
-  if (props.open && visible.value) {
-    startType()
-  }
-})
+watch(
+  () => props.text,
+  () => {
+    if (props.open && visible.value) {
+      startType()
+    }
+  },
+)
 
 onUnmounted(stopTimer)
 </script>
 
 <template>
-  <div v-show="visible" :class="plain ? 'text-sm leading-relaxed text-gray-600' : 'rounded-lg bg-gray-50 p-3'">
-    <div class="flex items-start gap-2">
-      <GraduationCap :size="18" class="mt-0.5 shrink-0 text-blue-500" />
-      <p class="whitespace-pre-line text-sm leading-relaxed text-gray-600">
+  <div v-show="visible" class="mt-4 flex items-start gap-2.5">
+    <span
+      class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+      :class="isAi ? 'bg-blue-pen/10 text-blue-pen' : 'bg-pencil/10 text-pencil'"
+    >
+      <Bot v-if="isAi" :size="16" />
+      <Presentation v-else :size="16" />
+    </span>
+    <div class="chat-bubble min-w-0 flex-1 px-4 py-3">
+      <p class="note-text whitespace-pre-line text-sm leading-6 text-pencil">
         {{ displayed }}<span v-if="visible" class="animate-pulse">▍</span>
       </p>
     </div>

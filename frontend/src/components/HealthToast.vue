@@ -102,7 +102,7 @@ onUnmounted(() => {
         <div
           v-if="status === 'checking'"
           :key="currentMessageIndex"
-          class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm"
+          class="note-sheet flex items-center gap-2 rounded px-3 py-1.5 text-sm text-pencil"
         >
           <component
             :is="messages[currentMessageIndex]?.icon"
@@ -126,7 +126,7 @@ onUnmounted(() => {
         <div
           v-else-if="status === 'ready'"
           key="ready"
-          class="flex items-center gap-2 rounded-full border border-green-100 bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm"
+          class="note-sheet flex items-center gap-2 rounded px-3 py-1.5 text-sm text-green-pen"
         >
           <CircleCheck :size="15" :stroke-width="1.8" aria-hidden="true" />
 
@@ -136,7 +136,7 @@ onUnmounted(() => {
         <div
           v-else
           key="error"
-          class="flex items-center gap-2 rounded-full border border-red-100 bg-white px-4 py-2 text-sm font-medium text-red-600 shadow-sm"
+          class="note-sheet flex items-center gap-2 rounded px-3 py-1.5 text-sm text-red-pen"
         >
           <ServerOff :size="15" :stroke-width="1.8" aria-hidden="true" />
 
