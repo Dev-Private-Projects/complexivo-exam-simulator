@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import {
   ArrowLeft,
   BarChart3,
@@ -99,7 +99,7 @@ const instructions = computed<Instruction[]>(() => [
     color: 'yellow',
     icon: ListChecks,
     segments: [
-      { text: 'ResponderÃ¡s ' },
+      { text: 'Responderás ' },
       { text: `${QUESTION_COUNT} preguntas aleatorias`, bold: true },
       { text: ', una a la vez.' },
     ],
@@ -109,7 +109,7 @@ const instructions = computed<Instruction[]>(() => [
     color: 'blue',
     icon: Timer,
     segments: [
-      { text: 'Tiempo lÃ­mite: ' },
+      { text: 'Tiempo límite: ' },
       { text: `${Math.floor(TIME_LIMIT_SECONDS / 60)} minutos`, bold: true },
       { text: '.' },
     ],
@@ -131,8 +131,8 @@ const instructions = computed<Instruction[]>(() => [
     segments: [
       { text: 'Presionar cualquier tecla', bold: true },
       { text: ' o ' },
-      { text: 'cambiar de pestaÃ±a', bold: true },
-      { text: ' finalizarÃ¡ el examen.' },
+      { text: 'cambiar de pestaña', bold: true },
+      { text: ' finalizará el examen.' },
     ],
   },
 ])
@@ -238,7 +238,7 @@ const selectOption = async (option: {
       aiExplanation.value = fallbackExplanation
       aiFallback.value = true
     } else {
-      aiError.value = err instanceof Error ? err.message : 'Error al obtener la explicaciÃ³n de IA'
+      aiError.value = err instanceof Error ? err.message : 'Error al obtener la explicación de IA'
     }
   } finally {
     aiLoading.value = false
@@ -330,7 +330,7 @@ watch(
                 :fill="badgeIconFill(store.currentQuestion.category.name)"
               />
             </span>
-            <p class="note-text text-sm text-gray-600">
+            <p class="text-sm text-gray-600">
               Pregunta {{ store.currentIndex + 1 }} de {{ store.total }}
             </p>
           </div>
@@ -346,7 +346,7 @@ watch(
               <Bot v-else :size="17" class="text-blue-pen" />
             </button>
             <p
-              class="note-text flex items-center gap-1.5 rounded-full bg-red-pen/10 px-2.5 py-1 text-sm tabular-nums text-red-pen"
+              class="flex items-center gap-1.5 rounded-full bg-red-pen/10 px-2.5 py-1 text-sm tabular-nums text-red-pen"
             >
               <Timer :size="15" /> {{ store.formattedTime }}
             </p>
@@ -371,7 +371,7 @@ watch(
               :disabled="selectedOptionId !== null"
               @click="selectOption(item.option)"
             >
-              <span class="note-text shrink-0 font-semibold"
+              <span class="shrink-0 font-semibold"
                 >{{ String.fromCharCode(96 + item.option.position) }})</span
               >
               <span class="min-w-0 flex-1">
@@ -384,14 +384,14 @@ watch(
         <div v-if="selectedOptionId !== null && useAi && !selectedIsCorrect" class="mt-5">
           <div
             v-if="aiLoading"
-            class="note-text rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500"
+            class="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500"
           >
-            Analizando tu respuesta<span class="animate-pulse">â€¦</span>
+            Analizando tu respuesta<span class="animate-pulse">…</span>
           </div>
-          <div v-else-if="aiError" class="note-text text-sm text-red-600">{{ aiError }}</div>
+          <div v-else-if="aiError" class="text-sm text-red-600">{{ aiError }}</div>
           <div v-else>
-            <p v-if="aiFallback" class="note-text mb-2 text-xs text-gray-500 italic">
-              ExplicaciÃ³n guardada en el banco de preguntas
+            <p v-if="aiFallback" class="mb-2 text-xs text-gray-500 italic">
+              Explicación guardada en el banco de preguntas
             </p>
             <ExplanationPanel
               :text="aiExplanation"
@@ -402,8 +402,8 @@ watch(
         </div>
 
         <div class="mt-6 flex items-center justify-between gap-3">
-          <p v-if="selectedOptionId === null" class="note-text text-sm text-gray-500">
-            Selecciona una opciÃ³n para continuar
+          <p v-if="selectedOptionId === null" class="text-sm text-gray-500">
+            Selecciona una opción para continuar
           </p>
           <span v-else />
           <button
@@ -437,26 +437,24 @@ watch(
       <div>
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 class="handwritten text-3xl leading-none font-bold text-pencil">
-              Informe de resultados
-            </h2>
-            <p class="note-text mt-1 text-sm text-gray-500">SimulaciÃ³n de examen complexivo</p>
+            <h2 class="text-3xl leading-none font-bold text-pencil">Informe de resultados</h2>
+            <p class="mt-1 text-sm text-gray-500">Simulación de examen complexivo</p>
           </div>
           <button class="note-btn group flex items-center gap-1.5" @click="store.resetToBriefing">
             <RotateCcw :size="14" class="transition-transform group-hover:scale-110" />
-            <span class="note-text">Nueva simulaciÃ³n</span>
+            <span>Nueva simulación</span>
           </button>
         </div>
 
         <div class="mt-5 rounded-lg border border-gray-200 bg-white px-5 py-4">
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p class="note-text text-xs text-gray-500">Puntaje obtenido</p>
-              <p class="handwritten text-4xl leading-none text-pencil">
+              <p class="text-xs text-gray-500">Puntaje obtenido</p>
+              <p class="text-4xl leading-none font-bold text-pencil">
                 {{ scorePercent }}<span class="text-2xl">%</span>
               </p>
             </div>
-            <p class="note-text text-sm text-gray-600">
+            <p class="text-sm text-gray-600">
               {{ store.correctCount }} de {{ store.total }} respuestas correctas
             </p>
           </div>
@@ -467,7 +465,7 @@ watch(
             <div class="bg-blue-300" :style="{ width: `${pendingRatio * 100}%` }" />
           </div>
 
-          <div class="note-text mt-2.5 flex flex-wrap gap-4 text-[11px] text-gray-500">
+          <div class="mt-2.5 flex flex-wrap gap-4 text-[11px] text-gray-500">
             <span class="flex items-center gap-1.5">
               <span class="h-2 w-2 rounded-full bg-green-pen" />
               Correctas {{ store.correctCount }}
@@ -484,10 +482,10 @@ watch(
         </div>
 
         <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4">
-          <h3 class="note-text flex items-center gap-1.5 text-sm font-semibold text-pencil">
+          <h3 class="flex items-center gap-1.5 text-sm font-semibold text-pencil">
             <BarChart3 :size="15" /> Aciertos por materia
           </h3>
-          <div class="note-text mt-1.5 flex gap-3 text-[10px] text-gray-500">
+          <div class="mt-1.5 flex gap-3 text-[10px] text-gray-500">
             <span class="flex items-center gap-1"
               ><span class="h-1.5 w-1.5 rounded-full bg-green-pen" />Aciertos</span
             >
@@ -502,13 +500,13 @@ watch(
           <ul class="mt-3 gap-x-8 gap-y-2.5 md:columns-2 xl:columns-3">
             <li v-for="item in store.byCategory" :key="item.name" class="break-inside-avoid">
               <div class="flex items-center justify-between gap-2">
-                <span class="note-text flex min-w-0 items-center gap-1.5 text-[13px] text-pencil">
+                <span class="flex min-w-0 items-center gap-1.5 text-[13px] text-pencil">
                   <span class="shrink-0" :style="{ color: categoryAccent(item.name) }">
                     <component :is="badgeIcon(item.name)" :size="12" />
                   </span>
                   <span class="truncate">{{ formatCategoryName(item.name) }}</span>
                 </span>
-                <span class="note-text shrink-0 text-[11px] text-gray-500">
+                <span class="shrink-0 text-[11px] text-gray-500">
                   {{ item.correct }}/{{ item.total }}
                 </span>
               </div>
@@ -541,8 +539,8 @@ watch(
             @click="showDetails = !showDetails"
           >
             <ClipboardList :size="14" class="text-blue-pen" />
-            <span class="note-text">
-              {{ showDetails ? 'Ocultar cuestionario' : 'MÃ¡s detalles' }}
+            <span>
+              {{ showDetails ? 'Ocultar cuestionario' : 'Más detalles' }}
             </span>
             <ChevronDown
               :size="14"
@@ -560,13 +558,11 @@ watch(
           >
             <div class="flex items-start justify-between gap-3">
               <p class="font-medium leading-7 text-gray-900">
-                <span class="mr-1 font-bold text-gray-500 handwritten text-xl"
-                  >{{ item.index + 1 }}.</span
-                >
+                <span class="mr-1 text-xl font-bold text-gray-500">{{ item.index + 1 }}.</span>
                 <FormattedText :text="item.question.statement" />
               </p>
               <span
-                class="note-text shrink-0 rounded-full px-2 py-0.5 text-[11px] whitespace-nowrap"
+                class="shrink-0 rounded-full px-2 py-0.5 text-[11px] whitespace-nowrap"
                 :class="detailStatus[item.status].cls"
               >
                 {{ detailStatus[item.status].label }}
@@ -580,7 +576,7 @@ watch(
                 class="flex items-start gap-2 rounded px-2 py-1 text-sm"
                 :class="detailOptionClass(option.id, option.isCorrect, item.selectedId)"
               >
-                <span class="note-text shrink-0 font-semibold"
+                <span class="shrink-0 font-semibold"
                   >{{ String.fromCharCode(96 + option.position) }})</span
                 >
                 <span class="min-w-0 flex-1"><FormattedText :text="option.text" /></span>
@@ -597,10 +593,8 @@ watch(
           <span v-for="ring in 9" :key="ring" class="spiral-ring" />
         </div>
 
-        <h2 class="handwritten text-3xl leading-none font-bold text-pencil">
-          Simulador de examen complexivo
-        </h2>
-        <p class="note-text mt-1.5 text-sm text-gray-500">Lee con atenciÃ³n antes de comenzar</p>
+        <h2 class="text-3xl leading-none font-bold text-pencil">Simulador de examen complexivo</h2>
+        <p class="mt-1.5 text-sm text-gray-500">Lee con atención antes de comenzar</p>
 
         <div class="mt-6 grid gap-5 sm:grid-cols-2">
           <div
@@ -619,15 +613,12 @@ watch(
               </span>
               <div class="min-w-0">
                 <p
-                  class="handwritten text-sm leading-none"
+                  class="text-sm leading-none font-semibold"
                   :class="NOTE_COLORS[instruction.color].text"
                 >
                   {{ index + 1 }}.
                 </p>
-                <p
-                  class="note-text text-[14px] leading-6"
-                  :class="NOTE_COLORS[instruction.color].text"
-                >
+                <p class="text-[14px] leading-6" :class="NOTE_COLORS[instruction.color].text">
                   <span
                     v-for="(segment, segIndex) in instruction.segments"
                     :key="segIndex"
@@ -643,7 +634,7 @@ watch(
 
         <p
           v-if="store.loadError"
-          class="note-text mt-5 rounded border border-red-pen/30 bg-red-pen/5 px-3 py-2 text-sm text-red-pen"
+          class="mt-5 rounded border border-red-pen/30 bg-red-pen/5 px-3 py-2 text-sm text-red-pen"
         >
           {{ store.loadError }}
         </p>
@@ -654,11 +645,11 @@ watch(
           @click="store.startExam"
         >
           <Play :size="15" class="text-red-pen transition-transform group-hover:scale-110" />
-          <span>{{ store.loadingQuestions ? 'Cargandoâ€¦' : 'Comenzar examen' }}</span>
+          <span>{{ store.loadingQuestions ? 'Cargando…' : 'Comenzar examen' }}</span>
         </button>
 
         <button
-          class="note-text group mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-black/5 hover:text-pencil"
+          class="group mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-black/5 hover:text-pencil"
           @click="router.push('/')"
         >
           <ArrowLeft :size="14" class="transition-transform group-hover:scale-110" />

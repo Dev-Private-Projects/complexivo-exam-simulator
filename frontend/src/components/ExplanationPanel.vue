@@ -100,7 +100,7 @@ onUnmounted(stopTimer)
       <Presentation v-else :size="16" />
     </span>
     <div class="chat-bubble min-w-0 flex-1 px-4 py-3">
-      <p class="note-text whitespace-pre-line text-sm leading-6 text-pencil">
+      <p class="whitespace-pre-line text-sm leading-6 text-pencil">
         {{ displayed }}<span v-if="visible" class="animate-pulse">▍</span>
       </p>
     </div>
