@@ -1,22 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-import {
-  HEALTH_MAX_WAIT_TIME,
-  HEALTH_RETRY_INTERVAL,
-  HEALTH_SHOW_TOAST_AFTER,
-  HEALTH_SUCCESS_TOAST_DURATION,
-} from '@/constants/health'
+import { HEALTH_MAX_WAIT_TIME, HEALTH_RETRY_INTERVAL } from '@/constants/health'
 import { checkHealth } from '@/services/health.service'
 import type { HealthStatus } from '@/types/health'
 
 export const useHealthStore = defineStore('health', () => {
   const status = ref<HealthStatus>('checking')
-  const showToast = ref(false)
 
   let retryTimer: ReturnType<typeof setTimeout> | null = null
-  let toastTimer: ReturnType<typeof setTimeout> | null = null
-  let successTimer: ReturnType<typeof setTimeout> | null = null
   let cancelled = false
   let errorLatched = false
 
@@ -28,29 +20,7 @@ export const useHealthStore = defineStore('health', () => {
 
   const clearTimers = () => {
     clearTimer(retryTimer)
-    clearTimer(toastTimer)
-    clearTimer(successTimer)
-
     retryTimer = null
-    toastTimer = null
-    successTimer = null
-  }
-
-  const showCheckingToast = () => {
-    toastTimer = setTimeout(() => {
-      if (status.value === 'checking') {
-        showToast.value = true
-      }
-    }, HEALTH_SHOW_TOAST_AFTER)
-  }
-
-  const showSuccessToast = () => {
-    showToast.value = true
-
-    successTimer = setTimeout(() => {
-      showToast.value = false
-      successTimer = null
-    }, HEALTH_SUCCESS_TOAST_DURATION)
   }
 
   const wait = (milliseconds: number) => {
@@ -63,10 +33,8 @@ export const useHealthStore = defineStore('health', () => {
     cancelled = false
     errorLatched = false
     status.value = 'checking'
-    showToast.value = false
 
     clearTimers()
-    showCheckingToast()
 
     const startTime = Date.now()
 
@@ -78,29 +46,14 @@ export const useHealthStore = defineStore('health', () => {
           return
         }
 
-        const wasToastVisible = showToast.value
-
-        clearTimer(toastTimer)
-        toastTimer = null
-
         status.value = 'ready'
-
-        if (wasToastVisible) {
-          showSuccessToast()
-        }
-
         return
       } catch {
         const elapsed = Date.now() - startTime
         const remainingTime = HEALTH_MAX_WAIT_TIME - elapsed
 
         if (remainingTime <= 0 && !errorLatched) {
-          clearTimer(toastTimer)
-          toastTimer = null
-
           status.value = 'error'
-          showToast.value = true
-
           errorLatched = true
         }
 
@@ -120,7 +73,6 @@ export const useHealthStore = defineStore('health', () => {
 
   return {
     status,
-    showToast,
     initialize,
     reset,
   }

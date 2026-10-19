@@ -17,6 +17,8 @@ export const useQuestionStore = defineStore('question', () => {
   const questionsLoading = ref(false)
   const categoriesError = ref<string | null>(null)
   const questionsError = ref<string | null>(null)
+  const categoriesLoaded = ref(false)
+  const questionsLoaded = ref(false)
 
   const totalPages = computed(() => Math.max(1, Math.ceil(questions.value.length / PAGE_SIZE)))
 
@@ -29,8 +31,10 @@ export const useQuestionStore = defineStore('question', () => {
     categoriesError.value = null
     try {
       categories.value = await getCategories()
+      categoriesLoaded.value = true
     } catch (error) {
-      categoriesError.value = error instanceof Error ? error.message : 'Error al cargar las categorías'
+      categoriesError.value =
+        error instanceof Error ? error.message : 'Error al cargar las categorías'
     } finally {
       categoriesLoading.value = false
     }
@@ -41,8 +45,10 @@ export const useQuestionStore = defineStore('question', () => {
     questionsError.value = null
     try {
       questions.value = await getQuestions(selectedCategoryIds.value, searchQuery.value)
+      questionsLoaded.value = true
     } catch (error) {
-      questionsError.value = error instanceof Error ? error.message : 'Error al cargar las preguntas'
+      questionsError.value =
+        error instanceof Error ? error.message : 'Error al cargar las preguntas'
       questions.value = []
     } finally {
       questionsLoading.value = false
@@ -77,6 +83,8 @@ export const useQuestionStore = defineStore('question', () => {
     questionsLoading,
     categoriesError,
     questionsError,
+    categoriesLoaded,
+    questionsLoaded,
     loadCategories,
     loadQuestions,
     setCategories,
